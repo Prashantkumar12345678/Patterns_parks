@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patterns Park</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="viewport">
+      <section class="stage" aria-label="Patterns Park game stage">
+        <div class="stage-shade" aria-hidden="true"></div>
+
+        <header class="hud" aria-label="Game status">
+          <div class="hud-panel">
+            <span class="hud-label">Pattern</span>
+            <strong id="roundValue">01</strong>
+          </div>
+          <div class="hud-panel target-chip">
+            <span class="hud-label">Target</span>
+            <strong id="targetValue">1</strong>
+          </div>
+          <div class="hud-panel">
+            <span class="hud-label">Score</span>
+            <strong id="scoreValue">000</strong>
+          </div>
+        </header>
+
+        <section class="arena" aria-label="Lamp puzzle">
+          <figure class="target-preview">
+            <figcaption>Target</figcaption>
+            <img
+              id="targetLamp"
+              class="target-lamp"
+              src="assets/lamps/pole-1-pink.png"
+              alt="Target lamp pattern"
+            />
+          </figure>
+
+          <figure class="build-preview">
+            <figcaption id="resultBadge">Ready</figcaption>
+            <img
+              id="buildLamp"
+              class="build-lamp"
+              src="assets/lamps/pole-0-off.png"
+              alt="Selected lamp pattern"
+            />
+          </figure>
+
+          <img
+            id="bonusLamp"
+            class="bonus-lamp"
+            src="assets/lamps/lamp-7-on.png"
+            alt=""
+            aria-hidden="true"
+          />
+        </section>
+
+        <footer class="answer-dock" aria-label="Answer controls">
+          <img class="answer-panel" src="assets/ui/answer-panel.png" alt="" aria-hidden="true" />
+          <div class="dock-content">
+            <button id="nextButton" class="asset-button plus-button" type="button" aria-label="Next lamp">
+              <img id="plusImage" src="assets/ui/plus.png" alt="" aria-hidden="true" />
+            </button>
+
+            <div id="choiceStrip" class="choice-strip" aria-label="Lamp choices"></div>
+
+            <button id="checkButton" class="asset-button check-button" type="button" aria-label="Check answer">
+              <img id="checkImage" src="assets/ui/check-cyan.png" alt="" aria-hidden="true" />
+            </button>
+          </div>
+        </footer>
+      </section>
+    </main>
+
+    <script src="main.js" defer></script>
+  </body>
+</html>

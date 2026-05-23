@@ -8,27 +8,30 @@
   </head>
   <body>
     <main class="viewport">
-      <section class="stage" aria-label="Tap to add the bulbs game screen">
+      <section class="stage is-intro" aria-label="Complete the pattern lamp game">
         <div class="stage-shade" aria-hidden="true"></div>
 
         <header class="instruction-banner">
           <img src="assets/ui/answer-panel.png" alt="" aria-hidden="true" />
-          <h1 id="instructionText">Tap to add the bulbs</h1>
+          <h1 id="instructionText">Complete the pattern.</h1>
         </header>
 
         <section class="lamp-line" aria-label="Lamp post pattern">
           <img
-            class="lamp lamp-7"
+            id="patternLampOne"
+            class="lamp pattern-lamp slot-one"
             src="assets/lamps/lamp-7-on.png"
             alt="Lamp post with seven lights"
           />
           <img
-            class="lamp lamp-6"
+            id="patternLampTwo"
+            class="lamp pattern-lamp slot-two"
             src="assets/lamps/lamp-6-on.png"
             alt="Lamp post with six lights"
           />
           <img
-            class="lamp lamp-5"
+            id="patternLampThree"
+            class="lamp pattern-lamp slot-three"
             src="assets/lamps/lamp-5-on.png"
             alt="Lamp post with five lights"
           />
@@ -38,7 +41,23 @@
             src="assets/lamps/pole-0-off.png"
             alt="Empty lamp post"
           />
+          <img
+            id="introBlankLamp"
+            class="lamp intro-blank"
+            src="assets/lamps/pole-0-off.png"
+            alt="Empty lamp post"
+          />
         </section>
+
+        <section class="hint-counts" aria-label="Lamp count hint" aria-hidden="true">
+          <span class="hint-count hint-count-one">7</span>
+          <span class="hint-count hint-count-two">6</span>
+          <span class="hint-count hint-count-three">5</span>
+          <span class="hint-count hint-count-four">4</span>
+          <span class="hint-count hint-count-five">3</span>
+        </section>
+
+        <button id="hintButton" class="hint-control" type="button" aria-label="Show hint">Hint</button>
 
         <button id="addBulbButton" class="plus-control" type="button" aria-label="Add bulb">
           <img src="assets/ui/plus.png" alt="" aria-hidden="true" />

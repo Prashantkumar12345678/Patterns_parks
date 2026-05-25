@@ -61,11 +61,11 @@ button {
 
 .instruction-banner {
   position: absolute;
-  top: 4.1%;
-  left: 1.5%;
-  right: 1.5%;
+  top: 0.3%;
+  left: 0.2%;
+  right: 0.2%;
   z-index: 3;
-  height: 11.4%;
+  height: 14.65%;
   margin: 0;
   pointer-events: none;
 }
@@ -86,7 +86,7 @@ button {
   display: flex;
   align-items: center;
   margin: 0;
-  padding: 0 2.8%;
+  padding: 0 3.2% 0 9.4%;
   color: var(--ink);
   font-size: clamp(1rem, 2.18vw, 2.55rem);
   font-weight: 900;
@@ -330,6 +330,20 @@ button {
   animation-delay: 1040ms;
 }
 
+.stage.is-hint .lamp,
+.stage.is-hint .hint-count {
+  animation: none;
+  opacity: 0;
+}
+
+.stage.is-hint .lamp.is-hint-revealed {
+  animation: poleArrive 420ms ease-out both;
+}
+
+.stage.is-hint .hint-count.is-hint-revealed {
+  animation: hintCountArrive 420ms ease-out both;
+}
+
 .plus-control {
   position: absolute;
   right: 9.7%;
@@ -382,26 +396,17 @@ button {
   left: 10.5%;
   bottom: 5.1%;
   z-index: 4;
-  min-width: clamp(88px, 8.2vw, 158px);
-  height: clamp(42px, 4.2vw, 74px);
+  width: clamp(54px, 5vw, 84px);
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
-  padding: 0 1.1em;
-  border: clamp(2px, 0.18vw, 4px) solid #27f6ff;
-  border-radius: 8px;
-  color: #e9feff;
-  background: rgba(42, 51, 72, 0.96);
-  font-size: clamp(1rem, 1.85vw, 2.15rem);
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
-  box-shadow:
-    0 0 18px rgba(39, 246, 255, 0.34),
-    inset 0 0 12px rgba(39, 246, 255, 0.1);
-  text-shadow: 0 0 10px rgba(39, 246, 255, 0.38);
   transition:
     opacity 180ms ease,
     filter 160ms ease;
@@ -409,10 +414,20 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+.hint-control img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter:
+    drop-shadow(0 0 11px rgba(129, 247, 247, 0.24))
+    drop-shadow(0 5px 8px rgba(0, 0, 0, 0.28));
+}
+
 .hint-control.is-visible {
   opacity: 1;
   pointer-events: auto;
-  animation: hintPulse 1.1s ease-in-out infinite;
+  animation: hintPulse 1.05s ease-in-out infinite;
 }
 
 .hint-control:hover,
@@ -567,15 +582,13 @@ button {
 @keyframes hintPulse {
   0%,
   100% {
-    box-shadow:
-      0 0 18px rgba(39, 246, 255, 0.34),
-      inset 0 0 12px rgba(39, 246, 255, 0.1);
+    transform: scale(1);
+    filter: drop-shadow(0 0 6px rgba(129, 247, 247, 0.34));
   }
 
   50% {
-    box-shadow:
-      0 0 30px rgba(39, 246, 255, 0.62),
-      inset 0 0 15px rgba(39, 246, 255, 0.18);
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 22px rgba(129, 247, 247, 0.78));
   }
 }
 
@@ -592,12 +605,12 @@ button {
 
 @media (max-width: 760px) {
   .instruction-banner {
-    top: 3.4%;
-    height: 13%;
+    top: 0.4%;
+    height: 14.65%;
   }
 
   .instruction-banner h1 {
-    padding-inline: 3.2%;
+    padding: 0 3.4% 0 9.6%;
   }
 
   .lamp {

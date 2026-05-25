@@ -12,13 +12,11 @@ const patternLamps = [
   document.querySelector("#patternLampTwo"),
   document.querySelector("#patternLampThree"),
 ];
+const hintLamps = [...patternLamps, buildLamp, finalLamp];
 
-const INTRO_DURATION_MS = 1500;
-const SUCCESS_ADVANCE_MS = 1500;
-const WRONG_FEEDBACK_MS = 1000;
 const HINT_WRONG_THRESHOLD = 2;
-const HINT_STEP_MS = 920;
-const HINT_RETURN_DELAY_MS = 1200;
+const SCREEN_AFTER_SPEECH_DELAY_MS = 450;
+const HINT_RETURN_DELAY_MS = 900;
 
 const checkAssets = {
   normal: "assets/ui/check-normal.png",
@@ -150,6 +148,9 @@ let isFinalScreen = false;
 let isHintScreen = false;
 let wrongStreak = 0;
 let audioContext;
+let narrationTimer;
+let narrationToken = 0;
+let screenFlowToken = 0;
 let resetTimer;
 let introTimer;
 let successTimer;
@@ -171,6 +172,28 @@ function getAnswerText() {
   return numberWords[getPattern().answer] ?? getPattern().answer;
 }
 
+function shouldShowHintPrompt() {
+  return wrongStreak >= HINT_WRONG_THRESHOLD && !isComplete && !isFinalScreen && !isHintScreen;
+}
+
+function estimateSpeechMs(text) {
+  return Math.max(1300, text.length * 72 + 650);
+}
+
+function getRobotVoice() {
+  if (!("speechSynthesis" in window)) {
+    return null;
+  }
+
+  const voices = window.speechSynthesis.getVoices();
+  return (
+    voices.find((voice) => /child|kid|zira|samantha|female|google us english/i.test(voice.name)) ??
+    voices.find((voice) => /^en/i.test(voice.lang)) ??
+    voices[0] ??
+    null
+  );
+}
+
 function getAudioContext() {
   if (!audioContext) {
     const AudioCtor = window.AudioContext || window.webkitAudioContext;
@@ -190,6 +213,10 @@ function unlockAudio() {
 
   if (context?.state === "suspended") {
     context.resume();
+  }
+
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.getVoices();
   }
 }
 
@@ -236,25 +263,97 @@ function playHintStepSfx(index) {
   playTone(620 + index * 54, 0.12, 0.1, "sine", 0.028);
 }
 
-function speakLightCount(count) {
-  if (!("speechSynthesis" in window)) {
-    return;
+function playRobotCue() {
+  playTone(920, 0.045, 0, "square", 0.018);
+  playTone(1320, 0.045, 0.055, "square", 0.014);
+}
+
+function cancelNarration() {
+  window.clearTimeout(narrationTimer);
+  narrationTimer = undefined;
+  narrationToken += 1;
+
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function speakRobot(text, options = {}) {
+  const { fallbackMs = estimateSpeechMs(text), afterMs = 0, cancelPrevious = true } = options;
+
+  if (cancelPrevious) {
+    cancelNarration();
   }
 
-  const utterance = new SpeechSynthesisUtterance(`${count} lights`);
-  utterance.rate = 0.88;
-  utterance.pitch = 1.02;
-  utterance.volume = 0.9;
-  window.speechSynthesis.speak(utterance);
+  const token = ++narrationToken;
+
+  return new Promise((resolve) => {
+    let isDone = false;
+
+    const finish = () => {
+      if (isDone || token !== narrationToken) {
+        return;
+      }
+
+      isDone = true;
+      window.clearTimeout(narrationTimer);
+      narrationTimer = undefined;
+
+      if (afterMs > 0) {
+        window.setTimeout(resolve, afterMs);
+        return;
+      }
+
+      resolve();
+    };
+
+    playRobotCue();
+    narrationTimer = window.setTimeout(finish, fallbackMs);
+
+    if (!("speechSynthesis" in window)) {
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voice = getRobotVoice();
+
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    utterance.rate = 0.82;
+    utterance.pitch = 1.75;
+    utterance.volume = 0.95;
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
+function playInstruction(text, options = {}) {
+  speakRobot(text, {
+    fallbackMs: estimateSpeechMs(text),
+    afterMs: 0,
+    ...options,
+  });
 }
 
 function clearHintTimers() {
   hintTimers.forEach((timer) => window.clearTimeout(timer));
   hintTimers = [];
+  cancelNarration();
+}
 
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
+function clearHintReveal() {
+  hintLamps.forEach((lamp) => lamp.classList.remove("is-hint-revealed"));
+  hintCounts.forEach((count) => count.classList.remove("is-hint-revealed"));
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(resolve, ms);
+    hintTimers.push(timer);
+  });
 }
 
 function preloadAssets() {
@@ -347,13 +446,19 @@ function renderBuildLamp(mode = "neutral") {
     return;
   }
 
-  instructionText.textContent = currentBulbs > 0 ? `Fixed ${getAnswerText()} lights.` : "Tap to add the bulbs";
+  if (isWrong) {
+    instructionText.textContent = `Fixed ${getAnswerText()} lights.`;
+    return;
+  }
+
+  instructionText.textContent = shouldShowHintPrompt() ? "Check the hint" : "Tap to add the bulbs";
 }
 
 function showIntro() {
   window.clearTimeout(introTimer);
   window.clearTimeout(successTimer);
   clearHintTimers();
+  const flowToken = ++screenFlowToken;
   stage.classList.remove("is-intro", "is-final", "is-hint");
   currentBulbs = 0;
   isComplete = false;
@@ -364,15 +469,24 @@ function showIntro() {
   void stage.offsetWidth;
   stage.classList.add("is-intro");
 
-  introTimer = window.setTimeout(() => {
+  speakRobot("Complete the pattern.", {
+    fallbackMs: 2800,
+    afterMs: SCREEN_AFTER_SPEECH_DELAY_MS,
+  }).then(() => {
+    if (flowToken !== screenFlowToken) {
+      return;
+    }
+
     stage.classList.remove("is-intro");
     renderBuildLamp();
-  }, INTRO_DURATION_MS);
+    playInstruction("Tap to add the bulbs.", { fallbackMs: 2300 });
+  });
 }
 
 function addBulb() {
   window.clearTimeout(resetTimer);
   unlockAudio();
+  cancelNarration();
 
   if (currentBulbs >= getMaxToleranceBulbs() || isComplete || isFinalScreen || isHintScreen) {
     return;
@@ -389,6 +503,7 @@ function resetToZeroPole() {
   isFinalScreen = false;
   isHintScreen = false;
   renderBuildLamp();
+  playInstruction("Tap to add the bulbs.", { fallbackMs: 2300 });
 }
 
 function advancePattern() {
@@ -403,19 +518,31 @@ function advancePattern() {
   isHintScreen = false;
   wrongStreak = 0;
   clearHintTimers();
+  ++screenFlowToken;
   stage.classList.remove("is-intro", "is-final", "is-hint");
   renderBuildLamp();
+  playInstruction("Tap to add the bulbs.", { fallbackMs: 2300 });
 }
 
 function scheduleNextPattern() {
   window.clearTimeout(successTimer);
+  const flowToken = ++screenFlowToken;
 
-  if (patternIndex < patterns.length - 1) {
-    successTimer = window.setTimeout(advancePattern, SUCCESS_ADVANCE_MS);
-    return;
-  }
+  speakRobot("Yay! You fixed the bulbs.", {
+    fallbackMs: 3000,
+    afterMs: SCREEN_AFTER_SPEECH_DELAY_MS,
+  }).then(() => {
+    if (flowToken !== screenFlowToken) {
+      return;
+    }
 
-  successTimer = window.setTimeout(showFinalScreen, SUCCESS_ADVANCE_MS);
+    if (patternIndex < patterns.length - 1) {
+      advancePattern();
+      return;
+    }
+
+    showFinalScreen();
+  });
 }
 
 function showFinalScreen() {
@@ -425,6 +552,8 @@ function showFinalScreen() {
   window.clearTimeout(introTimer);
   window.clearTimeout(resetTimer);
   clearHintTimers();
+  clearHintReveal();
+  ++screenFlowToken;
   stage.classList.remove("is-intro", "is-final", "is-hint");
   isComplete = true;
   isFinalScreen = true;
@@ -450,6 +579,7 @@ function showFinalScreen() {
   setControls("final");
   void stage.offsetWidth;
   stage.classList.add("is-final");
+  playInstruction("Yay! You completed the patterns.", { fallbackMs: 3300 });
 }
 
 function setFiveLampSequence(sequence) {
@@ -469,12 +599,14 @@ function setFiveLampSequence(sequence) {
   finalLamp.style.setProperty("--final-extra-bottom", finalExtraMeta.introBottom);
 }
 
-function showHintScreen() {
+async function showHintScreen() {
   unlockAudio();
   clearHintTimers();
   window.clearTimeout(resetTimer);
+  const flowToken = ++screenFlowToken;
   stage.classList.remove("is-intro", "is-final", "is-hint");
   isHintScreen = true;
+  clearHintReveal();
 
   setFiveLampSequence(finalSequence);
   finalSequence.forEach((count, index) => {
@@ -490,27 +622,44 @@ function showHintScreen() {
   void stage.offsetWidth;
   stage.classList.add("is-hint");
 
-  finalSequence.forEach((count, index) => {
-    const timer = window.setTimeout(() => {
-      playHintStepSfx(index);
-      speakLightCount(count);
-    }, index * HINT_STEP_MS + 120);
-    hintTimers.push(timer);
+  await speakRobot("Check the hint.", {
+    fallbackMs: 1900,
+    afterMs: SCREEN_AFTER_SPEECH_DELAY_MS,
   });
 
-  hintTimers.push(
-    window.setTimeout(() => {
-      wrongStreak = 0;
-      isHintScreen = false;
-      stage.classList.remove("is-hint");
-      renderBuildLamp();
-    }, finalSequence.length * HINT_STEP_MS + HINT_RETURN_DELAY_MS),
-  );
+  for (let index = 0; index < finalSequence.length; index += 1) {
+    if (flowToken !== screenFlowToken) {
+      return;
+    }
+
+    hintLamps[index].classList.add("is-hint-revealed");
+    hintCounts[index].classList.add("is-hint-revealed");
+    playHintStepSfx(index);
+
+    await speakRobot(`${finalSequence[index]} lights`, {
+      fallbackMs: 1550,
+      afterMs: 180,
+    });
+  }
+
+  await wait(HINT_RETURN_DELAY_MS);
+
+  if (flowToken !== screenFlowToken) {
+    return;
+  }
+
+  wrongStreak = 0;
+  isHintScreen = false;
+  stage.classList.remove("is-hint");
+  clearHintReveal();
+  renderBuildLamp();
+  playInstruction("Now try again.", { fallbackMs: 1900 });
 }
 
 function checkAnswer() {
   window.clearTimeout(resetTimer);
   unlockAudio();
+  cancelNarration();
 
   if (isFinalScreen || isHintScreen) {
     return;
@@ -529,18 +678,34 @@ function checkAnswer() {
   wrongStreak += 1;
   playWrongSfx();
   renderBuildLamp("wrong");
+  const shouldReset = currentBulbs > getPattern().answer;
+  const flowToken = ++screenFlowToken;
 
-  resetTimer = window.setTimeout(() => {
-    if (currentBulbs > getPattern().answer) {
+  speakRobot(instructionText.textContent, {
+    fallbackMs: 2600,
+    afterMs: SCREEN_AFTER_SPEECH_DELAY_MS,
+  }).then(() => {
+    if (flowToken !== screenFlowToken) {
+      return;
+    }
+
+    if (shouldReset) {
       resetToZeroPole();
       return;
     }
 
     renderBuildLamp();
-  }, WRONG_FEEDBACK_MS);
+
+    if (wrongStreak >= HINT_WRONG_THRESHOLD) {
+      playInstruction("Check the hint.", { fallbackMs: 1900 });
+    }
+  });
 }
 
 preloadAssets();
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
 addBulbButton.addEventListener("click", addBulb);
 hintButton.addEventListener("click", showHintScreen);
 checkButton.addEventListener("click", checkAnswer);

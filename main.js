@@ -5,6 +5,8 @@ const checkButton = document.querySelector("#checkButton");
 const checkImage = checkButton.querySelector("img");
 const buildLamp = document.querySelector("#buildLamp");
 const finalLamp = document.querySelector("#introBlankLamp");
+const offCircle = document.querySelector("#offCircleOverlay");
+const wrongCircle = document.querySelector("#wrongCircleOverlay");
 const instructionText = document.querySelector("#instructionText");
 const hintCounts = Array.from(document.querySelectorAll(".hint-count"));
 const patternLamps = [
@@ -24,103 +26,103 @@ const checkAssets = {
 
 const lampAssets = {
   0: {
-    image: "assets/lamps/pole-0-off.png",
-    wrongImage: "assets/lamps/pole-0-off.png",
-    correctImage: "assets/lamps/pole-0-off.png",
+    image: "assets/lamps/0 pol.png",
+    wrongImage: "assets/lamps/0 pol.png",
+    correctImage: "assets/lamps/0 pol.png",
     label: "Empty lamp post",
-    height: "30.6%",
-    bottom: "17.85%",
+    height: "52%",
+    bottom: "18.97%",
   },
   1: {
-    image: "assets/lamps/pole-1-off.png",
-    wrongImage: "assets/lamps/pole-1-pink.png",
-    correctImage: "assets/lamps/pole-1-off.png",
+    image: "assets/lamps/pole-1-of.png",
+    wrongImage: "assets/lamps/pole-1- wrong.png",
+    correctImage: "assets/lamps/1 pol.png",
     label: "Lamp post with one bulb",
-    height: "33.8%",
-    bottom: "17.68%",
+    height: "52%",
+    bottom: "18.97%",
   },
   2: {
-    image: "assets/lamps/pole-2-white.png",
-    wrongImage: "assets/lamps/pole-2-pink.png",
-    correctImage: "assets/lamps/pole-2-white.png",
+    image: "assets/lamps/pole-2-of.png",
+    wrongImage: "assets/lamps/pole-2- wrong.png",
+    correctImage: "assets/lamps/2 pol.png",
     label: "Lamp post with two bulbs",
-    height: "35.1%",
-    bottom: "17.84%",
+    height: "52%",
+    bottom: "18.97%",
   },
   3: {
-    image: "assets/lamps/pole-3-off.png",
-    wrongImage: "assets/lamps/pole-3-pink.png",
-    correctImage: "assets/lamps/pole-3-on.png",
+    image: "assets/lamps/pole-3-of.png",
+    wrongImage: "assets/lamps/pole-3- wrong.png",
+    correctImage: "assets/lamps/3 pol.png",
     label: "Lamp post with three bulbs",
-    height: "35.2%",
-    bottom: "17.13%",
+    height: "52%",
+    bottom: "18.97%",
   },
   4: {
-    image: "assets/lamps/pole-4-off.png",
-    wrongImage: "assets/lamps/pole-4-pink.png",
-    correctImage: "assets/lamps/pole-4-on.png",
+    image: "assets/lamps/pole-4-of.png",
+    wrongImage: "assets/lamps/pole-4- wrong.png",
+    correctImage: "assets/lamps/4 pol.png",
     label: "Lamp post with four bulbs",
-    height: "35.5%",
-    bottom: "17.75%",
+    height: "52%",
+    bottom: "18.97%",
   },
   5: {
-    image: "assets/lamps/pole-5-off.png",
-    wrongImage: "assets/lamps/pole-5-on.png",
-    correctImage: "assets/lamps/pole-5-off.png",
+    image: "assets/lamps/pole-5-of.png",
+    wrongImage: "assets/lamps/pole-5- wrong.png",
+    correctImage: "assets/lamps/5 pol.png",
     label: "Lamp post with five bulbs",
-    height: "35.8%",
-    bottom: "17.97%",
+    height: "52%",
+    bottom: "18.97%",
   },
   6: {
-    image: "assets/lamps/pole-6-off.png",
-    wrongImage: "assets/lamps/pole-6-pink.png",
-    correctImage: "assets/lamps/pole-6-off.png",
+    image: "assets/lamps/pole-6-of.png",
+    wrongImage: "assets/lamps/pole-6- wrong.png",
+    correctImage: "assets/lamps/6 pol.png",
     label: "Lamp post with six bulbs",
-    height: "36.2%",
-    bottom: "19.08%",
+    height: "52%",
+    bottom: "18.97%",
   },
 };
 
 const patternAssetMeta = {
   3: {
-    image: "assets/lamps/pole-3-on.png",
+    image: "assets/lamps/3 pol.png",
     label: "Lamp post with three lights",
-    playHeight: "35.2%",
-    playBottom: "17.13%",
-    introHeight: "35.2%",
-    introBottom: "17.13%",
+    playHeight: "52%",
+    playBottom: "18.97%",
+    introHeight: "52%",
+    introBottom: "18.97%",
   },
   4: {
-    image: "assets/lamps/pole-4-on.png",
+    image: "assets/lamps/4 pol.png",
     label: "Lamp post with four lights",
-    playHeight: "35.5%",
-    playBottom: "17.75%",
-    introHeight: "37.2%",
-    introBottom: "17.75%",
+    playHeight: "52%",
+    playBottom: "18.97%",
+    introHeight: "52%",
+    introBottom: "18.97%",
   },
   5: {
-    image: "assets/lamps/lamp-5-on.png",
+    image: "assets/lamps/5 pol.png",
     label: "Lamp post with five lights",
-    playHeight: "31.5%",
-    playBottom: "18.95%",
-    introHeight: "34.8%",
-    introBottom: "18.95%",
+    playHeight: "52%",
+    playBottom: "18.97%",
+    introHeight: "52%",
+    introBottom: "18.97%",
   },
   6: {
-    image: "assets/lamps/lamp-6-on.png",
+    image: "assets/lamps/6 pol.png",
     label: "Lamp post with six lights",
-    playHeight: "38.3%",
-    playBottom: "18.95%",
-    introHeight: "39%",
-    introBottom: "18.95%",
+    playHeight: "52%",
+    playBottom: "18.97%",
+    introHeight: "52%",
+    introBottom: "18.97%",
   },
   7: {
-    image: "assets/lamps/lamp-7-on.png",
+    image: "assets/lamps/7 pol.png",
     label: "Lamp post with seven lights",
-    playHeight: "40.1%",
-    playBottom: "17.4%",
-    introHeight: "43.2%",
-    introBottom: "17.2%",
+    playHeight: "52%",
+    playBottom: "18.97%",
+    introHeight: "52%",
+    introBottom: "18.97%",
   },
 };
 
@@ -435,6 +437,8 @@ function renderBuildLamp(mode = "neutral") {
   checkImage.src = checkAssets.normal;
   setBuildHeight(state);
   setControls(mode);
+  offCircle.classList.toggle("is-visible", !isIntro && !isWrong && !isCorrect && currentBulbs === 0);
+  wrongCircle.classList.toggle("is-visible", false);
 
   if (isIntro) {
     instructionText.textContent = "Complete the pattern.";

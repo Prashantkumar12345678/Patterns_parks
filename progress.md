@@ -1,6 +1,6 @@
 # Patterns Park Progress
 
-Last updated: 2026-05-25
+Last updated: 2026-05-27
 
 ## Current Goal
 
@@ -56,19 +56,30 @@ Match the lamp-pattern tutorial/game layout from the provided reference screens.
 - Checking above the current answer resets the editable pole back to zero after feedback.
 - Plus and check button dimensions do not change on click or feedback states.
 - Pole bases are aligned with per-asset baseline offsets, because the PNGs have different transparent padding.
+- Background replaced with a new sunset/dusk scene (`assets/game-bg.png` swapped by user).
+- All lamp poles standardised to `height: 52%` and `bottom: 18.97%` so every pole shares the same size and baseline regardless of bulb count.
+- Full lamp asset set replaced with new stylised brass pole artwork:
+  - `X pol.png` (0–7) — golden lit bulbs; used for pattern lamps and correct-answer build state.
+  - `pole-X-of.png` (1–7) — white unlit bulbs; used for the build lamp while the player is adding bulbs.
+  - `pole-X- wrong.png` (1–7) — pink bulbs; used for the build lamp on a wrong check.
+  - `0 pol.png` — empty golden pole; used for the zero-bulb build lamp state.
+- Grey off-circle overlay (`assets/lamps/off circle  (1).png`) added to the build lamp when it is at zero bulbs to indicate the empty slot; hidden during intro/final/hint screens.
+- Wrong-circle overlay removed from active use because `pole-X- wrong.png` now directly shows the wrong state on the lamp image itself.
 
 ## Important Assets
 
-- Background: `assets/game-bg.png`
+- Background: `assets/game-bg.png` (sunset/dusk scene)
 - Banner: `assets/ui/instruction-panel-robot.png`
 - Hint button: `assets/ui/hint-bulb-button.png`
 - Plus button: `assets/ui/plus.png`
 - Check normal: `assets/ui/check-normal.png`
 - Wrong/correct check states use CSS glow on `assets/ui/check-normal.png`.
 - Hint and instruction SFX use browser Web Audio tones plus high-pitch speech synthesis, because no standalone audio files are currently in the project.
-- Generated neutral two-bulb pole: `assets/lamps/pole-2-white.png`
-- Lit three-bulb final/correct pole: `assets/lamps/pole-3-on.png`
-- Pink four-bulb wrong pole: `assets/lamps/pole-4-pink.png`
+- Empty pole: `assets/lamps/0 pol.png`
+- Off-circle overlay (empty build lamp): `assets/lamps/off circle  (1).png`
+- Lamp poles (lit): `assets/lamps/1 pol.png` → `assets/lamps/7 pol.png`
+- Lamp poles (unlit/building): `assets/lamps/pole-1-of.png` → `assets/lamps/pole-7-of.png`
+- Lamp poles (wrong): `assets/lamps/pole-1- wrong.png` → `assets/lamps/pole-7- wrong.png`
 
 ## Main Files
 
@@ -94,5 +105,6 @@ Match the lamp-pattern tutorial/game layout from the provided reference screens.
 ## Next Checks
 
 - Visually compare spacing against the latest references in a browser.
-- Fine tune per-state editable pole heights if any state is off by a few pixels.
+- Fine-tune circle overlay vertical position if off-circle does not sit precisely over the empty pole cap.
+- Confirm all three build lamp states (off → wrong → correct) look correct across patterns 1 and 2.
 - Decide whether the intro state should auto-advance or wait for a separate tutorial transition.
